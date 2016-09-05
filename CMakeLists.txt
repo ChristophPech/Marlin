@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 
 #====================================================================#
-# Download 
+# Download marlin-cmake scriptfiles if not already installed         #
+# and add the path to the module path                                #
 #====================================================================#
 
 if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/marlin-cmake)
