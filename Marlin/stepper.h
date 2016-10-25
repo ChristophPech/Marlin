@@ -91,11 +91,6 @@ class Stepper {
       static bool performing_homing;
     #endif
 
-    //
-    // Positions of stepper motors, in step units
-    //
-    static volatile long count_position[NUM_AXIS];
-
   private:
 
     static unsigned char last_direction_bits;        // The next stepping-bits to be output
@@ -118,8 +113,8 @@ class Stepper {
         static int final_estep_rate;
         static int current_estep_rate[E_STEPPERS]; // Actual extruder speed [steps/s]
         static int current_adv_steps[E_STEPPERS];  // The amount of current added esteps due to advance.
-                                                  // i.e., the current amount of pressure applied
-                                                  // to the spring (=filament).
+                                                   // i.e., the current amount of pressure applied
+                                                   // to the spring (=filament).
       #else
         static long e_steps[E_STEPPERS];
         static long advance_rate, advance, final_advance;
@@ -142,6 +137,11 @@ class Stepper {
       #endif
       static constexpr int motor_current_setting[3] = PWM_MOTOR_CURRENT;
     #endif
+
+    //
+    // Positions of stepper motors, in step units
+    //
+    static volatile long count_position[NUM_AXIS];
 
     //
     // Current direction of stepper motors (+1 or -1)
@@ -188,8 +188,9 @@ class Stepper {
     //
     // Set the current position in steps
     //
-    static void set_position(const long& x, const long& y, const long& z, const long& e);
-    static void set_e_position(const long& e);
+    static void set_position(const long &a, const long &b, const long &c, const long &e);
+    static void set_position(const AxisEnum &a, const long &v);
+    static void set_e_position(const long &e);
 
     //
     // Set direction bits for all steppers
@@ -239,13 +240,16 @@ class Stepper {
     //
     static FORCE_INLINE bool motor_direction(AxisEnum axis) { return TEST(last_direction_bits, axis); }
 
-    #if HAS_DIGIPOTSS
+    #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
       static void digitalPotWrite(int address, int value);
+      static void digipot_current(uint8_t driver, int current);
     #endif
-    static void microstep_ms(uint8_t driver, int8_t ms1, int8_t ms2);
-    static void digipot_current(uint8_t driver, int current);
-    static void microstep_mode(uint8_t driver, uint8_t stepping);
-    static void microstep_readings();
+
+    #if HAS_MICROSTEPS
+      static void microstep_ms(uint8_t driver, int8_t ms1, int8_t ms2);
+      static void microstep_mode(uint8_t driver, uint8_t stepping);
+      static void microstep_readings();
+    #endif
 
     #if ENABLED(Z_DUAL_ENDSTOPS)
       static FORCE_INLINE void set_homing_flag(bool state) { performing_homing = state; }
@@ -380,7 +384,10 @@ class Stepper {
     }
 
     static void digipot_init();
-    static void microstep_init();
+
+    #if HAS_MICROSTEPS
+      static void microstep_init();
+    #endif
 
 };
 

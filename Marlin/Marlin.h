@@ -209,6 +209,11 @@ void manage_inactivity(bool ignore_stepper_queue = false);
 
 #endif // !MIXING_EXTRUDER
 
+#if ENABLED(G38_PROBE_TARGET)
+  extern bool G38_move,        // flag to tell the interrupt handler that a G38 command is being run
+              G38_endstop_hit; // flag from the interrupt handler to indicate if the endstop went active
+#endif
+
 /**
  * The axis order in all axis related arrays is X, Y, Z, E
  */
@@ -303,12 +308,11 @@ float code_value_temp_diff();
 
 #if IS_KINEMATIC
   extern float delta[ABC];
-  void inverse_kinematics(const float cartesian[XYZ]);
+  void inverse_kinematics(const float logical[XYZ]);
 #endif
 
 #if ENABLED(DELTA)
-  extern float delta[ABC],
-               endstop_adj[ABC],
+  extern float endstop_adj[ABC],
                delta_radius,
                delta_diagonal_rod,
                delta_segments_per_second,
@@ -317,13 +321,12 @@ float code_value_temp_diff();
                delta_diagonal_rod_trim_tower_3;
   void recalc_delta_settings(float radius, float diagonal_rod);
 #elif IS_SCARA
-  extern float axis_scaling[ABC];  // Build size scaling
   void forward_kinematics_SCARA(const float &a, const float &b);
 #endif
 
-#if ENABLED(AUTO_BED_LEVELING_NONLINEAR)
-  extern int nonlinear_grid_spacing[2];
-  void adjust_delta(float cartesian[XYZ]);
+#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+  extern int bilinear_grid_spacing[2];
+  float bilinear_z_offset(float logical[XYZ]);
 #endif
 
 #if ENABLED(Z_DUAL_ENDSTOPS)
@@ -390,11 +393,6 @@ extern uint8_t active_extruder;
 #endif
 
 void calculate_volumetric_multipliers();
-
-// Buzzer
-#if HAS_BUZZER && PIN_EXISTS(BEEPER)
-  #include "buzzer.h"
-#endif
 
 /**
  * Blocking movement and shorthand functions
