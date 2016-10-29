@@ -117,8 +117,6 @@
   /**
    * Auto Bed Leveling and Z Probe Repeatability Test
    */
-  #define HAS_PROBING_PROCEDURE (ENABLED(AUTO_BED_LEVELING_FEATURE) || ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST))
-
   #define HOMING_Z_WITH_PROBE (HAS_BED_PROBE && Z_HOME_DIR < 0 && ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN))
 
   /**
@@ -224,8 +222,12 @@
   #if TEMP_SENSOR_0 == -3
     #define HEATER_0_USES_MAX6675
     #define MAX6675_IS_MAX31855
+    #define MAX6675_TMIN -270
+    #define MAX6675_TMAX 1800
   #elif TEMP_SENSOR_0 == -2
     #define HEATER_0_USES_MAX6675
+    #define MAX6675_TMIN 0
+    #define MAX6675_TMAX 1024
   #elif TEMP_SENSOR_0 == -1
     #define HEATER_0_USES_AD595
   #elif TEMP_SENSOR_0 == 0
@@ -308,13 +310,13 @@
   /**
    * ARRAY_BY_EXTRUDERS based on EXTRUDERS
    */
-  #define ARRAY_BY_EXTRUDERS(args...) ARRAY_N(EXTRUDERS, args)
+  #define ARRAY_BY_EXTRUDERS(...) ARRAY_N(EXTRUDERS, __VA_ARGS__)
   #define ARRAY_BY_EXTRUDERS1(v1) ARRAY_BY_EXTRUDERS(v1, v1, v1, v1, v1, v1)
 
   /**
    * ARRAY_BY_HOTENDS based on HOTENDS
    */
-  #define ARRAY_BY_HOTENDS(args...) ARRAY_N(HOTENDS, args)
+  #define ARRAY_BY_HOTENDS(...) ARRAY_N(HOTENDS, __VA_ARGS__)
   #define ARRAY_BY_HOTENDS1(v1) ARRAY_BY_HOTENDS(v1, v1, v1, v1, v1, v1)
 
   /**
@@ -462,10 +464,13 @@
   #define HAS_SOLENOID_1 (PIN_EXISTS(SOL1))
   #define HAS_SOLENOID_2 (PIN_EXISTS(SOL2))
   #define HAS_SOLENOID_3 (PIN_EXISTS(SOL3))
-  #define HAS_MICROSTEPS (PIN_EXISTS(X_MS1))
+  #define HAS_MICROSTEPS_X (PIN_EXISTS(X_MS1))
+  #define HAS_MICROSTEPS_Y (PIN_EXISTS(Y_MS1))
+  #define HAS_MICROSTEPS_Z (PIN_EXISTS(Z_MS1))
   #define HAS_MICROSTEPS_E0 (PIN_EXISTS(E0_MS1))
   #define HAS_MICROSTEPS_E1 (PIN_EXISTS(E1_MS1))
   #define HAS_MICROSTEPS_E2 (PIN_EXISTS(E2_MS1))
+  #define HAS_MICROSTEPS (HAS_MICROSTEPS_X || HAS_MICROSTEPS_Y || HAS_MICROSTEPS_Z || HAS_MICROSTEPS_E0 || HAS_MICROSTEPS_E1 || HAS_MICROSTEPS_E2)
   #define HAS_STEPPER_RESET (PIN_EXISTS(STEPPER_RESET))
   #define HAS_X_ENABLE (PIN_EXISTS(X_ENABLE))
   #define HAS_X2_ENABLE (PIN_EXISTS(X2_ENABLE))
@@ -641,25 +646,19 @@
   #endif
 
   /**
-   * Specify the exact style of auto bed leveling
-   *
-   *  3POINT    - 3 Point Probing with the least-squares solution.
-   *  LINEAR    - Grid Probing with the least-squares solution.
-   *  NONLINEAR - Grid Probing with a mesh solution. Best for large beds.
+   * Set ABL options based on the specific type of leveling
    */
-  #if ENABLED(AUTO_BED_LEVELING_FEATURE)
-    #if DISABLED(AUTO_BED_LEVELING_GRID)
-      #define AUTO_BED_LEVELING_LINEAR
-      #define AUTO_BED_LEVELING_3POINT
-    #elif IS_KINEMATIC
-      #define AUTO_BED_LEVELING_NONLINEAR
-    #else
-      #define AUTO_BED_LEVELING_LINEAR
-      #define AUTO_BED_LEVELING_LINEAR_GRID
-    #endif
-  #endif
+  #define ABL_PLANAR (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_3POINT))
+  #define ABL_GRID   (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_BILINEAR))
+  #define HAS_ABL    (ABL_PLANAR || ABL_GRID)
 
-  #define PLANNER_LEVELING (ENABLED(MESH_BED_LEVELING) || ENABLED(AUTO_BED_LEVELING_FEATURE))
+  #define PLANNER_LEVELING      (HAS_ABL || ENABLED(MESH_BED_LEVELING))
+  #define HAS_PROBING_PROCEDURE (HAS_ABL || ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST))
+
+  #if HAS_PROBING_PROCEDURE
+    #define PROBE_BED_WIDTH abs(RIGHT_PROBE_BED_POSITION - (LEFT_PROBE_BED_POSITION))
+    #define PROBE_BED_HEIGHT abs(BACK_PROBE_BED_POSITION - (FRONT_PROBE_BED_POSITION))
+  #endif
 
   /**
    * Buzzer/Speaker
@@ -710,5 +709,9 @@
 
   // Stepper pulse duration, in cycles
   #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_MICROSECOND)
+
+  #ifndef DELTA_ENDSTOP_ADJ
+    #define DELTA_ENDSTOP_ADJ { 0 }
+  #endif
 
 #endif // CONDITIONALS_POST_H
