@@ -94,7 +94,8 @@
 #define MSG_PID_D                           "PID-D"
 #define MSG_PID_C                           "PID-C"
 #define MSG_ACC                             "Επιτάχυνση"
-#define MSG_VXY_JERK                        "Vαντίδραση xy"
+#define MSG_VX_JERK                         "Vαντίδραση x"
+#define MSG_VY_JERK                         "Vαντίδραση y"
 #define MSG_VZ_JERK                         "Vαντίδραση z"
 #define MSG_VE_JERK                         "Vαντίδραση e"
 #define MSG_VMAX                            "V Μέγιστο"
@@ -179,7 +180,7 @@
 #define MSG_INFO_BAUDRATE                   "Baud"
 #define MSG_INFO_PROTOCOL                   "Protocol"
 
-#if LCD_WIDTH > 19
+#if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              "Print Count"
   #define MSG_INFO_COMPLETED_PRINTS         "Completed  "
   #define MSG_INFO_PRINT_TIME               "Total Time "

@@ -115,4 +115,10 @@ applet/
 *.dSYM/
 *.su
 
+
 .project
+
+#PlatformIO files/dirs
+.pioenvs
+.piolib
+
